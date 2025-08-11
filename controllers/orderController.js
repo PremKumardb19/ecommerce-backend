@@ -1,44 +1,55 @@
-const { orderEscrow, ethers, buyerWallet,adminWallet, provider } = require('../services/blockchain');
+const Order = require('../models/Order');
+const Product=require("../models/Product");
+const { productRegistry,orderEscrow, ethers, buyerWallet, adminWallet } = require('../services/blockchain');
 
 /**
- * Place an order: buyer calls placeOrder with productId and pays price attached
+ * Place an order: buyer calls on-chain placeOrder and saves meta to DB
  * POST /api/orders
- * Body: { productId }
+ * Body: { productId, priceETH }
  */
 async function placeOrder(req, res, next) {
   try {
-    const { productId } = req.body;
-    if (!productId) {
-      return res.status(400).json({ error: 'productId is required' });
-    }
+    const { productId, priceETH } = req.body;
+    if (!productId) return res.status(400).json({ error: 'productId is required' });
+    if (!priceETH) return res.status(400).json({ error: 'priceETH is required' });
 
-    // Get signer wallet (buyer wallet connected)
+    // Find product off-chain by UUID
+    const product = await Product.findOne({ productId: productId });
+    if (!product || typeof product.onChainId !== 'number') {
+      return res.status(400).json({ error: 'Product not registered on-chain' });
+    }
+    const numericProductId = product.onChainId;
+
+    // Fetch on-chain product details for debug/logging
+    const onChainProduct = await productRegistry.getProduct(numericProductId);
+    console.log('On-chain product data:', onChainProduct);
+
+    const priceWei = ethers.utils.parseEther(priceETH.toString());
+
     const contractWithBuyer = orderEscrow.connect(buyerWallet);
 
-    // Fetch product price from ProductRegistry for payment amount if needed via blockchain or frontend (assumed front sends value)
-    // Here we assume frontend sends productId and buyerWallet has enough balance.
-
-    // Place order transaction with ETH value (price needs to come from product on frontend, or separately fetched)
-    // For demo, assume price is fetched off-chain or cached in frontend
-
-    // We need product price, so better to fetch it from ProductRegistry via blockchain or cache in backend
-    // For simplicity, let's assume frontend sends price. Ideally, your frontend calls /api/products/:id first
-
-    // Let's fetch price from a combined blockchain call from OrderEscrow or ProductRegistry if you add that service here
-    // Here we just proceed to placeOrder with no value passed. This will fail on blockchain if value not attached.
-
-    // We expect frontend sends the exact price in body to be sent as value
-    const priceETH = req.body.priceETH;
-    if (!priceETH) {
-      return res.status(400).json({ error: 'priceETH is required and must match product price' });
-    }
-    const priceWei = ethers.utils.parseEther(priceETH.toString());
-    console.log("buying with wallet: ",buyerWallet)
-    const tx = await contractWithBuyer.placeOrder(productId, { value: priceWei });
+    const tx = await contractWithBuyer.placeOrder(numericProductId, { value: priceWei });
     const receipt = await tx.wait();
 
-    const event = receipt.events.find(e => e.event === 'OrderPlaced');
+    const event = receipt.events.find((e) => e.event === 'OrderPlaced');
+    if (!event) return res.status(500).json({ error: 'OrderPlaced event not found' });
+
     const orderId = event.args.orderId.toString();
+    const seller = event.args.seller.toLowerCase();
+    const buyer = event.args.buyer.toLowerCase();
+
+    // Save order metadata off-chain in DB
+    const orderDoc = new Order({
+      orderId,
+      productId,
+      buyer,
+      seller,
+      valueWei: priceWei.toString(),
+      status: 0, // Created
+      timestamp: new Date(),
+    });
+
+    await orderDoc.save();
 
     res.status(201).json({
       message: 'Order placed successfully',
@@ -51,8 +62,9 @@ async function placeOrder(req, res, next) {
   }
 }
 
+
 /**
- * Confirm delivery by buyer, release funds to seller
+ * Buyer confirms delivery, releases funds on-chain and updates DB status
  * POST /api/orders/:id/deliver
  */
 async function confirmDelivery(req, res, next) {
@@ -65,6 +77,14 @@ async function confirmDelivery(req, res, next) {
     const tx = await contractWithBuyer.confirmDelivery(orderId);
     await tx.wait();
 
+    // Update DB order status to Completed (status 4)
+    const order = await Order.findOneAndUpdate(
+      { orderId },
+      { status: 4, timestamp: new Date() },
+      { new: true }
+    );
+    if (!order) return res.status(404).json({ error: 'Order not found' });
+
     res.json({ message: 'Delivery confirmed, funds released', txHash: tx.hash });
   } catch (error) {
     console.error('confirmDelivery error:', error);
@@ -73,24 +93,33 @@ async function confirmDelivery(req, res, next) {
 }
 
 /**
- * Open dispute for order (buyer or seller)
+ * Open dispute for an order (buyer/seller)
  * POST /api/orders/:id/dispute
+ * Body: { role } - "buyer" or "seller"
  */
 async function openDispute(req, res, next) {
   try {
     const orderId = req.params.id;
+    const { role } = req.body;
     if (!orderId) return res.status(400).json({ error: 'Order ID required' });
+    if (!role || !['buyer', 'seller'].includes(role.toLowerCase())) {
+      return res.status(400).json({ error: 'Valid role ("buyer" or "seller") required' });
+    }
 
-    const { role } = req.body; // "buyer" or "seller" to select wallet
-
-    let signerWallet;
-    if (role === 'buyer') signerWallet = buyerWallet;
-    else signerWallet = adminWallet; // Currently only buyer wallet known, expand as needed (seller wallet)
+    const signerWallet = role.toLowerCase() === 'buyer' ? buyerWallet : adminWallet;
 
     const contractWithSigner = orderEscrow.connect(signerWallet);
 
     const tx = await contractWithSigner.openDispute(orderId);
     await tx.wait();
+
+    // Update DB order status to Disputed (status 2)
+    const order = await Order.findOneAndUpdate(
+      { orderId },
+      { status: 2, timestamp: new Date() },
+      { new: true }
+    );
+    if (!order) return res.status(404).json({ error: 'Order not found' });
 
     res.json({ message: 'Dispute opened', txHash: tx.hash });
   } catch (error) {
@@ -100,7 +129,7 @@ async function openDispute(req, res, next) {
 }
 
 /**
- * Resolve dispute (only admin wallet)
+ * Admin resolves dispute: refund buyer or pay seller
  * POST /api/orders/:id/resolve
  * Body: { refundBuyer: boolean }
  */
@@ -108,19 +137,24 @@ async function resolveDispute(req, res, next) {
   try {
     const orderId = req.params.id;
     const { refundBuyer } = req.body;
-
     if (!orderId) return res.status(400).json({ error: 'Order ID required' });
-    if (refundBuyer === undefined) return res.status(400).json({ error: 'refundBuyer flag required' });
+    if (typeof refundBuyer !== 'boolean') {
+      return res.status(400).json({ error: 'refundBuyer flag required and must be boolean' });
+    }
 
-    // Admin wallet to resolve disputes
-    const contractWithAdmin = orderEscrow.connect(orderEscrow.signer || buyerWallet); // use adminWallet here
+    const contractWithAdmin = orderEscrow.connect(adminWallet);
 
-    const { orderEscrow: adminOrderEscrow } = require('../services/blockchain');
-    const adminWallet = require('../services/blockchain').adminWallet;
-    const contract = adminOrderEscrow.connect(adminWallet);
-
-    const tx = await contract.resolveDispute(orderId, Boolean(refundBuyer));
+    const tx = await contractWithAdmin.resolveDispute(orderId, refundBuyer);
     await tx.wait();
+
+    // Update DB order status accordingly
+    const newStatus = refundBuyer ? 3 : 4; // Refunded=3, Completed=4
+    const order = await Order.findOneAndUpdate(
+      { orderId },
+      { status: newStatus, timestamp: new Date() },
+      { new: true }
+    );
+    if (!order) return res.status(404).json({ error: 'Order not found' });
 
     res.json({ message: 'Dispute resolved', refundBuyer, txHash: tx.hash });
   } catch (error) {
@@ -130,7 +164,7 @@ async function resolveDispute(req, res, next) {
 }
 
 /**
- * Get order details by ID
+ * Get order details by orderId (from DB)
  * GET /api/orders/:id
  */
 async function getOrder(req, res, next) {
@@ -138,21 +172,19 @@ async function getOrder(req, res, next) {
     const orderId = req.params.id;
     if (!orderId) return res.status(400).json({ error: 'Order ID required' });
 
-    const order = await orderEscrow.getOrder(orderId);
-    const decodedOrder = {
-      id: order.id.toNumber(),
-      productId: order.productId.toNumber(),
-      buyer: order.buyer,
-      seller: order.seller,
-      valueWei: order.value.toString(),
-      valueEth: ethers.utils.formatEther(order.value),  // e.g. "0.000000000000001"
-      status: order.status,   // numeric, you can map to string below
-      statusName: ["Created", "Delivered", "Disputed", "Refunded", "Completed"][order.status],
-      timestamp: order.timestamp.toNumber(),
-      datetime: new Date(order.timestamp.toNumber() * 1000).toISOString(),
-    };
+    const order = await Order.findOne({ orderId }).lean();
+    if (!order) return res.status(404).json({ error: 'Order not found' });
 
-    res.json(decodedOrder);
+    // Map numeric status to string for convenience
+    const statusNames = ['Created', 'Delivered', 'Disputed', 'Refunded', 'Completed'];
+    const statusName = statusNames[order.status] || 'Unknown';
+
+    res.json({
+      ...order,
+      valueEth: ethers.utils.formatEther(order.valueWei),
+      statusName,
+      datetime: order.timestamp.toISOString(),
+    });
   } catch (error) {
     console.error('getOrder error:', error);
     next(error);
@@ -160,33 +192,30 @@ async function getOrder(req, res, next) {
 }
 
 /**
- * List all orders by buyer address
+ * List all orders by buyer address (from DB)
  * GET /api/orders/buyer/:address
- * Note: On-chain filtering by buyer is inefficient; off-chain indexing recommended for production.
  */
 async function getOrdersByBuyer(req, res, next) {
   try {
     const buyerAddress = req.params.address;
     if (!buyerAddress) return res.status(400).json({ error: 'Buyer address required' });
 
-    // Inefficient on-chain way: iterate all orders
-    const orderCount = (await orderEscrow.orderCount()).toNumber();
-    const orders = [];
-    for (let i = 1; i <= orderCount; i++) {
-      const order = await orderEscrow.getOrder(i);
-      if (order.buyer.toLowerCase() === buyerAddress.toLowerCase()) {
-        orders.push({
-          id: order.id.toString(),
-          productId: order.productId.toString(),
-          seller: order.seller,
-          value: ethers.utils.formatEther(order.value),
-          status: order.status,
-          timestamp: new Date(order.timestamp.toNumber() * 1000),
-        });
-      }
-    }
+    const orders = await Order.find({ buyer: buyerAddress.toLowerCase() }).lean();
 
-    res.json(orders);
+    // Map order data with valueEth and readable timestamp
+    const statusNames = ['Created', 'Delivered', 'Disputed', 'Refunded', 'Completed'];
+
+    const response = orders.map((order) => ({
+      id: order.orderId,
+      productId: order.productId,
+      seller: order.seller,
+      value: ethers.utils.formatEther(order.valueWei),
+      status: order.status,
+      statusName: statusNames[order.status] || 'Unknown',
+      timestamp: order.timestamp,
+    }));
+
+    res.json(response);
   } catch (error) {
     console.error('getOrdersByBuyer error:', error);
     next(error);

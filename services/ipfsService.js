@@ -40,6 +40,7 @@ async function uploadFileToIPFS(file) {
     console.log("✅ File uploaded to IPFS. CID:", response.data.IpfsHash);
     return response.data.IpfsHash;
   } catch (error) {
+    console.log(response)
     console.error("❌ Error uploading file to IPFS:", error.response?.data || error.message);
     throw new Error("Failed to upload file to IPFS");
   }

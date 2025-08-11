@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Wallet Login Demo</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 600px; margin: 2rem auto; }
+    input[type="text"] { width: 100%; padding: 8px; margin-bottom: 10px; font-size: 16px; }
+    button { padding: 8px 16px; font-size: 16px; margin-top: 10px; cursor: pointer; }
+    .output { margin-top: 20px; }
+    pre { background: #f4f4f4; padding: 10px; overflow-x: auto; }
+    .error { color: red; }
+    .success { color: green; }
+  </style>
+</head>
+<body>
+  <h1>Wallet Login Demo (HTML + JS)</h1>
+
+  <label for="address">Ethereum Wallet Address</label>
+  <input type="text" id="address" placeholder="Enter your wallet address" />
+
+  <button id="connectWalletBtn">Connect MetaMask Wallet</button>
+  <button id="requestNonceBtn" disabled>Request Nonce</button>
+  <button id="signMessageBtn" disabled>Sign Nonce Message</button>
+  <button id="loginBtn" disabled>Login</button>
+   <label for="accounts">Available Accounts</label>
+<select id="accounts" size="3" style="width: 100%; margin-bottom: 10px;"></select>
+  <div class="output">
+    <p id="status"></p>
+    <p><strong>Nonce:</strong> <span id="nonce"></span></p>
+    <p><strong>Signature:</strong></p>
+    <textarea id="signature" rows="4" style="width:100%;"></textarea>
+    <p><strong>JWT Token:</strong></p>
+    <textarea id="jwt" rows="4" style="width:100%;"></textarea>
+    <p><strong>User Info:</strong></p>
+    <pre id="userInfo"></pre>
+  </div>
+
+  <script>
+    const API_BASE = 'http://localhost:5000/api/users'; // Change to your backend URL
+
+    const addressInput = document.getElementById('address');
+    const connectWalletBtn = document.getElementById('connectWalletBtn');
+    const requestNonceBtn = document.getElementById('requestNonceBtn');
+    const signMessageBtn = document.getElementById('signMessageBtn');
+    const loginBtn = document.getElementById('loginBtn');
+    const statusEl = document.getElementById('status');
+    const nonceEl = document.getElementById('nonce');
+    const signatureEl = document.getElementById('signature');
+    const jwtEl = document.getElementById('jwt');
+    const userInfoEl = document.getElementById('userInfo');
+
+    let currentNonce = null;
+    let currentSignature = null;
+    let currentAddress = null;
+
+    function logStatus(message, isError = false) {
+      statusEl.textContent = message;
+      statusEl.className = isError ? 'error' : 'success';
+    }
+
+    // Connect MetaMask wallet, populate address field
+const accountsSelect = document.getElementById('accounts');
+
+connectWalletBtn.onclick = async () => {
+  if (!window.ethereum) {
+    logStatus('MetaMask is not installed!', true);
+    return;
+  }
+  try {
+    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+    console.log(accounts);
+
+    // Clear previous options
+    accountsSelect.innerHTML = '';
+
+    // Add all accounts to the select dropdown
+    accounts.forEach((account) => {
+      const option = document.createElement('option');
+      option.value = account;
+      option.textContent = account;
+      accountsSelect.appendChild(option);
+    });
+
+    // Automatically select first account
+    if (accounts.length > 0) {
+      accountsSelect.value = accounts[0];
+      addressInput.value = accounts[0];
+      currentAddress = accounts[0].toLowerCase();
+      logStatus(`Connected ${accounts.length} accounts. Selected: ${accounts[0]}`);
+      requestNonceBtn.disabled = false;
+    }
+  } catch (err) {
+    logStatus('Wallet connection failed: ' + err.message, true);
+  }
+};
+
+// When user changes selection in the dropdown, update the address input
+accountsSelect.onchange = () => {
+  if (accountsSelect.value) {
+    addressInput.value = accountsSelect.value;
+    currentAddress = accountsSelect.value.toLowerCase();
+    logStatus(`Selected account: ${accountsSelect.value}`);
+  }
+};
+
+
+    // Request nonce from backend
+    requestNonceBtn.onclick = async () => {
+      clearOutputs();
+      const addr = addressInput.value.trim();
+      if (!addr || !/^0x[a-fA-F0-9]{40}$/i.test(addr)) {
+        logStatus('Please enter a valid Ethereum address.', true);
+        return;
+      }
+      try {
+        const res = await fetch(`${API_BASE}/nonce`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ address: addr }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          logStatus('Failed to get nonce: ' + data.error, true);
+          return;
+        }
+        currentNonce = data.nonce;
+        nonceEl.textContent = currentNonce;
+        logStatus('Nonce received. Ready to sign.');
+        signMessageBtn.disabled = false;
+      } catch (err) {
+        logStatus('Network error: ' + err.message, true);
+      }
+    };
+
+    function clearOutputs() {
+      nonceEl.textContent = '';
+      signatureEl.value = '';
+      jwtEl.value = '';
+      userInfoEl.textContent = '';
+      signMessageBtn.disabled = true;
+      loginBtn.disabled = true;
+      currentNonce = null;
+      currentSignature = null;
+    }
+
+    // Sign nonce message with MetaMask
+    signMessageBtn.onclick = async () => {
+      if (!currentNonce) {
+        logStatus('No nonce to sign. Please request nonce first.', true);
+        return;
+      }
+      const addr = addressInput.value.trim().toLowerCase();
+
+      try {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+        const signerAddr = await signer.getAddress();
+        if (signerAddr.toLowerCase() !== addr) {
+          logStatus('Connected MetaMask account does not match entered address.', true);
+          return;
+        }
+        const message = `Please sign this message to authenticate. Nonce: ${currentNonce}`;
+        const sig = await signer.signMessage(message);
+        signatureEl.value = sig;
+        currentSignature = sig;
+        logStatus('Message signed. Ready to login.');
+        loginBtn.disabled = false;
+      } catch (err) {
+        logStatus('Signing failed: ' + err.message, true);
+      }
+    };
+
+    // Send login request
+    loginBtn.onclick = async () => {
+      if (!currentSignature) {
+        logStatus('No signature found. Please sign message first.', true);
+        return;
+      }
+      const addr = addressInput.value.trim();
+      try {
+        const res = await fetch(`${API_BASE}/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ address: addr, signature: currentSignature }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          logStatus('Login failed: ' + data.error, true);
+          return;
+        }
+        jwtEl.value = data.token;
+        userInfoEl.textContent = JSON.stringify(data.user, null, 2);
+        logStatus('Login successful! JWT token received.');
+      } catch (err) {
+        logStatus('Login error: ' + err.message, true);
+      }
+    };
+  </script>
+</body>
+</html>

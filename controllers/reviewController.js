@@ -1,66 +1,99 @@
-const { reviewSystem, buyerWallet } = require('../services/blockchain');
+const Review = require('../models/Review');
+const Product = require('../models/Product');
+const { reviewSystem, orderEscrow, buyerWallet, ethers } = require('../services/blockchain');
 
 /**
- * Add a product review by a verified buyer
+ * Add a product review by a verified buyer (stores in DB + calls on-chain verification)
  * POST /api/reviews
- * Body: { productId, rating, reviewText }
+ * Body: { productId (UUID), rating, reviewText? }
  */
 async function addReview(req, res, next) {
   try {
-    const { productId, rating, reviewText } = req.body;
+    const { productId, rating, reviewText = '' } = req.body;
 
-    if (!productId || !rating) {
+    // Validate body fields
+    if (!productId || rating === undefined) {
       return res.status(400).json({ error: 'productId and rating are required' });
     }
-
-    if (rating < 1 || rating > 5) {
-      return res.status(400).json({ error: 'rating must be between 1 and 5' });
+    if (typeof rating !== 'number' || rating < 1 || rating > 5) {
+      return res.status(400).json({ error: 'rating must be a number between 1 and 5' });
     }
 
+    // Authentication check – must come from auth middleware decoding JWT
+    const reviewerAddress = req.user?.address?.toLowerCase();
+    if (!reviewerAddress) {
+      return res.status(401).json({ error: 'Authentication required with connected wallet' });
+    }
+
+    // Ensure user hasn't already reviewed this product
+    const existingReview = await Review.findOne({ productId, reviewer: reviewerAddress });
+    if (existingReview) {
+      return res.status(409).json({ error: 'You have already reviewed this product' });
+    }
+
+    // Get on-chain numeric ID from DB
+    const productDoc = await Product.findOne({ productId });
+    if (!productDoc || typeof productDoc.onChainId !== 'number') {
+      return res.status(404).json({ error: 'Product not found or not registered on-chain' });
+    }
+    const numericProductId = productDoc.onChainId;
+
+    // Verify buyer status via OrderEscrow.hasPurchased(address,uint256)
+    const isBuyerVerified = await orderEscrow.hasPurchased(reviewerAddress, numericProductId);
+    if (!isBuyerVerified) {
+      return res.status(403).json({ error: 'You must have purchased this product to review' });
+    }
+
+    // Submit review on-chain – backend demo uses buyerWallet as signer
     const contractWithBuyer = reviewSystem.connect(buyerWallet);
-    console.log("buyerwallet at reviews ",buyerWallet)
-    const tx = await contractWithBuyer.addReview(productId, rating, reviewText || '');
-    const receipt = await tx.wait();
+    const tx = await contractWithBuyer.addReview(numericProductId, rating, reviewText);
+    await tx.wait();
+
+    // Save review off-chain for fast retrieval
+    const newReview = new Review({
+      productId,              // keep UUID for off-chain reference
+      reviewer: reviewerAddress,
+      rating,
+      reviewText,
+      timestamp: new Date()
+    });
+    await newReview.save();
 
     res.status(201).json({
       message: 'Review added successfully',
-      txHash: tx.hash,
-      receipt:receipt
+      txHash: tx.hash
     });
   } catch (error) {
     console.error('addReview error:', error);
-    // Check for some common revert reasons
     if (error.message.includes('Already reviewed')) {
-      error.status = 409;
-      error.message = 'You have already reviewed this product';
-    } else if (error.message.includes('Not a verified buyer')) {
-      error.status = 403;
-      error.message = 'You must have purchased this product to review';
+      return res.status(409).json({ error: 'You have already reviewed this product' });
+    }
+    if (error.message.includes('Not a verified buyer')) {
+      return res.status(403).json({ error: 'You must have purchased this product to review' });
     }
     next(error);
   }
 }
 
 /**
- * Get all reviews for a specific product
+ * Get all reviews for a specific product (from DB)
  * GET /api/reviews/:productId
  */
 async function getReviews(req, res, next) {
   try {
     const productId = req.params.productId;
-
     if (!productId) {
       return res.status(400).json({ error: 'Product ID is required' });
     }
 
-    const reviews = await reviewSystem.getReviews(productId);
+    const reviews = await Review.find({ productId }).sort({ timestamp: -1 }).lean();
 
     // Format reviews for client
     const formatted = reviews.map(r => ({
       reviewer: r.reviewer,
-      rating: r.rating.toNumber ? r.rating.toNumber() : r.rating,
+      rating: r.rating,
       reviewText: r.reviewText,
-      timestamp: new Date(r.timestamp.toNumber ? r.timestamp.toNumber() * 1000 : r.timestamp * 1000).toISOString(),
+      timestamp: r.timestamp.toISOString()
     }));
 
     res.json(formatted);
@@ -72,5 +105,5 @@ async function getReviews(req, res, next) {
 
 module.exports = {
   addReview,
-  getReviews,
+  getReviews
 };
