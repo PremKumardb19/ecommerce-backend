@@ -1,9 +1,3 @@
-Perfect 👍 I’ll expand this into a **robust enterprise-style README** that’s not just “setup + APIs,” but also includes **deep architecture, workflows, dev guide, security notes, testing strategy, deployment instructions, and troubleshooting**. Think of it as a “one-stop manual” for your ecommerce + blockchain backend.
-
-Here’s the **more robust README**:
-
----
-
 # 🛒 Decentralized E-Commerce Backend (with Rewards & Escrow)
 
 A **hybrid Web2 + Web3 backend** for decentralized e-commerce.
