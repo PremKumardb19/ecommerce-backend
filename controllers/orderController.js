@@ -85,12 +85,21 @@ async function confirmDelivery(req, res, next) {
     );
     if (!order) return res.status(404).json({ error: 'Order not found' });
 
+    // Also set the corresponding product's forSale to false
+    if (order.productId) {
+      await Product.findOneAndUpdate(
+        { productId: order.productId },
+        { forSale: false }
+      );
+    }
+
     res.json({ message: 'Delivery confirmed, funds released', txHash: tx.hash });
   } catch (error) {
     console.error('confirmDelivery error:', error);
     next(error);
   }
 }
+
 
 /**
  * Open dispute for an order (buyer/seller)

@@ -255,6 +255,27 @@ async function getAllForSaleProductIds(req, res, next) {
   }
 }
 
+/**
+ * Get all products from DB
+ * GET /api/products
+ */
+async function getAllProducts(req, res, next) {
+  try {
+    const products = await Product.find({}).lean();
+
+    // Convert priceWei → priceEth for convenience
+    const formattedProducts = products.map((p) => ({
+      ...p,
+      priceEth: ethers.utils.formatEther(ethers.BigNumber.from(p.priceWei)),
+    }));
+
+    res.json(formattedProducts);
+  } catch (error) {
+    console.error('getAllProducts error:', error);
+    next(error);
+  }
+}
+
 module.exports = {
   registerProduct,
   getProduct,
@@ -262,4 +283,5 @@ module.exports = {
   updateProduct,
   transferProductOwnership,
   getAllForSaleProductIds,
+  getAllProducts
 };
