@@ -57,38 +57,35 @@ async function getBalance(req, res, next) {
  * POST /api/rewards/burn
  * Body: { amount: string (token units) }
  */
+/**
+ * POST /api/rewards/burn-callback
+ * Body: { txHash, amount }
+ */
 async function burnTokens(req, res, next) {
   try {
-    const { amount } = req.body;
-    const userAddress = req.user?.address?.toLowerCase();
+    const { txHash, amount } = req.body;
 
-    if (!amount) {
-      return res.status(400).json({ error: 'Amount is required' });
-    }
-    if (!userAddress) {
-      return res.status(401).json({ error: 'Authentication required' });
+    if (!txHash || !amount) {
+      return res.status(400).json({ error: "txHash and amount are required" });
     }
 
-    // Parse amount to wei
-    const parsedAmount = ethers.utils.parseUnits(amount.toString(), 18);
+    const receipt = await provider.getTransactionReceipt(txHash);
+    if (!receipt || receipt.status !== 1) {
+      return res.status(400).json({ error: "Invalid or failed transaction" });
+    }
 
-    // Connect contract with user wallet signer for token burn
-    // Here, you should ideally use user's wallet signer, 
-    // this example assumes backend buyerWallet for demonstration
-    const contractWithBuyer = rewardToken.connect(buyerWallet);
+    const tx = await provider.getTransaction(txHash);
+    const userAddress = tx.from.toLowerCase();
 
-    const tx = await contractWithBuyer.burn(parsedAmount);
-    await tx.wait();
+    await updateRewardBalance(userAddress, amount, "burn");
 
-    // Optionally update off-chain DB balance
-    await updateRewardBalance(userAddress, parsedAmount, 'burn');
-
-    res.json({ message: 'Tokens burned successfully', txHash: tx.hash });
+    res.json({ message: "Burn recorded successfully", txHash });
   } catch (error) {
-    console.error('burnTokens error:', error);
+    console.error("burnCallback error:", error);
     next(error);
   }
 }
+
 
 /**
  * Helper: Update off-chain Reward balance and stats after mint or burn

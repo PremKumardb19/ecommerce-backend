@@ -1,1251 +1,1129 @@
 <!doctype html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>CryptoMarket — Premium Digital Marketplace</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-    
-    :root {
-      --primary: #6366f1;
-      --primary-dark: #4f46e5;
-      --secondary: #ec4899;
-      --accent: #06b6d4;
-      --success: #10b981;
-      --warning: #f59e0b;
-      --danger: #ef4444;
-      
-      --bg-primary: #0a0b14;
-      --bg-secondary: #0f1119;
-      --bg-tertiary: #1a1b23;
-      --bg-glass: rgba(255, 255, 255, 0.02);
-      --bg-glass-hover: rgba(255, 255, 255, 0.05);
-      
-      --text-primary: #ffffff;
-      --text-secondary: #a1a1aa;
-      --text-muted: #71717a;
-      
-      --border: rgba(255, 255, 255, 0.08);
-      --border-hover: rgba(255, 255, 255, 0.15);
-      
-      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-      --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-      --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.3);
-    }
-
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      background: var(--bg-primary);
-      background-image: 
-        radial-gradient(circle at 20% 50%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, rgba(236, 72, 153, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 40% 80%, rgba(6, 182, 212, 0.1) 0%, transparent 50%);
-      color: var(--text-primary);
-      min-height: 100vh;
-      overflow-x: hidden;
-      line-height: 1.6;
-    }
-
-    /* Animated background particles */
-    .bg-particles {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: -1;
-      overflow: hidden;
-    }
-
-    .particle {
-      position: absolute;
-      width: 2px;
-      height: 2px;
-      background: var(--primary);
-      border-radius: 50%;
-      opacity: 0.4;
-      animation: float 20s infinite linear;
-    }
-
-    @keyframes float {
-      0% {
-        transform: translateY(100vh) translateX(0px);
-        opacity: 0;
-      }
-      10% {
-        opacity: 0.4;
-      }
-      90% {
-        opacity: 0.4;
-      }
-      100% {
-        transform: translateY(-10vh) translateX(100px);
-        opacity: 0;
-      }
-    }
-
-    /* Header */
-    .header {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      backdrop-filter: blur(20px) saturate(180%);
-      background: rgba(10, 11, 20, 0.8);
-      border-bottom: 1px solid var(--border);
-      padding: 1rem 0;
-      transition: all 0.3s ease;
-    }
-
-    .header.scrolled {
-      background: rgba(10, 11, 20, 0.95);
-      box-shadow: var(--shadow-lg);
-    }
-
-    .header-content {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 0 2rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      font-size: 1.5rem;
-      font-weight: 800;
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      text-decoration: none;
-    }
-
-    .logo-icon {
-      width: 32px;
-      height: 32px;
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.2rem;
-      animation: pulse-glow 3s ease-in-out infinite;
-    }
-
-    @keyframes pulse-glow {
-      0%, 100% { box-shadow: 0 0 10px rgba(99, 102, 241, 0.5); }
-      50% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.8), 0 0 30px rgba(236, 72, 153, 0.4); }
-    }
-
-    .nav-links {
-      display: flex;
-      gap: 2rem;
-      list-style: none;
-    }
-
-    .nav-links a {
-      color: var(--text-secondary);
-      text-decoration: none;
-      font-weight: 500;
-      padding: 0.5rem 0;
-      position: relative;
-      transition: all 0.3s ease;
-    }
-
-    .nav-links a:hover {
-      color: var(--text-primary);
-    }
-
-    .nav-links a::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 0;
-      height: 2px;
-      background: linear-gradient(90deg, var(--primary), var(--secondary));
-      transition: width 0.3s ease;
-    }
-
-    .nav-links a:hover::after {
-      width: 100%;
-    }
-
-    .header-actions {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-
-    .btn-connect {
-      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-      color: white;
-      border: none;
-      padding: 0.75rem 1.5rem;
-      border-radius: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: var(--shadow-lg);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .btn-connect::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-      transition: left 0.6s;
-    }
-
-    .btn-connect:hover::before {
-      left: 100%;
-    }
-
-    .btn-connect:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-xl), var(--shadow-glow);
-    }
-
-    /* Main Container */
-    .container {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 2rem;
-    }
-
-    /* Hero Section */
-    .hero {
-      text-align: center;
-      padding: 4rem 0;
-      margin-bottom: 3rem;
-    }
-
-    .hero h1 {
-      font-size: clamp(2.5rem, 5vw, 4rem);
-      font-weight: 800;
-      margin-bottom: 1.5rem;
-      background: linear-gradient(135deg, var(--text-primary), var(--text-secondary));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      opacity: 0;
-      animation: slideUp 1s ease 0.2s forwards;
-    }
-
-    .hero p {
-      font-size: 1.25rem;
-      color: var(--text-secondary);
-      max-width: 600px;
-      margin: 0 auto 2rem;
-      opacity: 0;
-      animation: slideUp 1s ease 0.4s forwards;
-    }
-
-    .hero-stats {
-      display: flex;
-      justify-content: center;
-      gap: 3rem;
-      margin-top: 3rem;
-      opacity: 0;
-      animation: slideUp 1s ease 0.6s forwards;
-    }
-
-    .stat {
-      text-align: center;
-    }
-
-    .stat-number {
-      font-size: 2rem;
-      font-weight: 700;
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      display: block;
-    }
-
-    .stat-label {
-      color: var(--text-muted);
-      font-size: 0.875rem;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    /* Controls */
-    .controls {
-      background: var(--bg-glass);
-      backdrop-filter: blur(20px);
-      border: 1px solid var(--border);
-      border-radius: 24px;
-      padding: 2rem;
-      margin-bottom: 3rem;
-      box-shadow: var(--shadow-lg);
-      opacity: 0;
-      animation: slideUp 1s ease 0.8s forwards;
-    }
-
-    .controls-grid {
-      display: grid;
-      grid-template-columns: 2fr 1fr auto auto;
-      gap: 1rem;
-      align-items: center;
-    }
-
-    .search-container {
-      position: relative;
-    }
-
-    .search-input {
-      width: 100%;
-      background: var(--bg-secondary);
-      border: 1px solid var(--border);
-      color: var(--text-primary);
-      padding: 1rem 1rem 1rem 3rem;
-      border-radius: 16px;
-      font-size: 1rem;
-      transition: all 0.3s ease;
-      outline: none;
-    }
-
-    .search-input:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-      background: var(--bg-tertiary);
-    }
-
-    .search-icon {
-      position: absolute;
-      left: 1rem;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--text-muted);
-      font-size: 1.25rem;
-    }
-
-    .select-wrapper {
-      position: relative;
-    }
-
-    .custom-select {
-      appearance: none;
-      background: var(--bg-secondary);
-      border: 1px solid var(--border);
-      color: var(--text-primary);
-      padding: 1rem 3rem 1rem 1rem;
-      border-radius: 16px;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      outline: none;
-      width: 100%;
-    }
-
-    .custom-select:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-    }
-
-    .select-arrow {
-      position: absolute;
-      right: 1rem;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--text-muted);
-      pointer-events: none;
-      transition: transform 0.3s ease;
-    }
-
-    .select-wrapper:hover .select-arrow {
-      transform: translateY(-50%) rotate(180deg);
-    }
-
-    .btn {
-      background: linear-gradient(135deg, var(--accent), var(--success));
-      color: white;
-      border: none;
-      padding: 1rem 1.5rem;
-      border-radius: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      position: relative;
-      overflow: hidden;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      font-size: 0.875rem;
-    }
-
-    .btn:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-lg);
-    }
-
-    .btn::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-      transition: left 0.6s;
-    }
-
-    .btn:hover::before {
-      left: 100%;
-    }
-
-    .status-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1rem;
-    }
-
-    .status-text {
-      color: var(--text-muted);
-      font-size: 0.875rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .loading-spinner {
-      width: 16px;
-      height: 16px;
-      border: 2px solid var(--border);
-      border-top: 2px solid var(--primary);
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    .items-count {
-      background: var(--bg-glass);
-      border: 1px solid var(--border);
-      padding: 0.5rem 1rem;
-      border-radius: 12px;
-      font-size: 0.875rem;
-      font-weight: 600;
-    }
-
-    /* Product Grid */
-    .products-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-      gap: 2rem;
-      margin-top: 2rem;
-    }
-
-    .product-card {
-      background: var(--bg-glass);
-      backdrop-filter: blur(20px);
-      border: 1px solid var(--border);
-      border-radius: 24px;
-      overflow: hidden;
-      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-      cursor: pointer;
-      position: relative;
-      opacity: 0;
-      transform: translateY(30px);
-      animation: slideUpFade 0.6s ease forwards;
-    }
-
-    .product-card:hover {
-      transform: translateY(-8px);
-      border-color: var(--border-hover);
-      box-shadow: var(--shadow-xl), 0 0 40px rgba(99, 102, 241, 0.1);
-    }
-
-    .product-image {
-      position: relative;
-      width: 100%;
-      height: 240px;
-      overflow: hidden;
-      background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
-    }
-
-    .product-img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transition: transform 0.6s ease;
-    }
-
-    .product-card:hover .product-img {
-      transform: scale(1.05);
-    }
-
-    .product-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: linear-gradient(135deg, transparent, rgba(99, 102, 241, 0.1));
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-
-    .product-card:hover .product-overlay {
-      opacity: 1;
-    }
-
-    .product-status {
-      position: absolute;
-      top: 1rem;
-      right: 1rem;
-      padding: 0.5rem 1rem;
-      border-radius: 12px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .status-available {
-      background: var(--success);
-      color: white;
-      box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
-    }
-
-    .status-sold {
-      background: var(--danger);
-      color: white;
-      box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
-    }
-
-    .product-content {
-      padding: 2rem;
-    }
-
-    .product-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 1rem;
-    }
-
-    .product-title {
-      font-size: 1.25rem;
-      font-weight: 700;
-      color: var(--text-primary);
-      margin-bottom: 0.5rem;
-      line-height: 1.3;
-    }
-
-    .product-description {
-      color: var(--text-secondary);
-      font-size: 0.9rem;
-      line-height: 1.5;
-      margin-bottom: 1.5rem;
-    }
-
-    .product-price {
-      font-size: 1.5rem;
-      font-weight: 800;
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .product-meta {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .meta-item {
-      background: var(--bg-secondary);
-      border: 1px solid var(--border);
-      padding: 0.75rem;
-      border-radius: 12px;
-      text-align: center;
-    }
-
-    .meta-label {
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 0.25rem;
-    }
-
-    .meta-value {
-      font-size: 0.875rem;
-      font-weight: 600;
-      color: var(--text-primary);
-    }
-
-    .product-owner {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      margin-bottom: 1.5rem;
-      word-break: break-all;
-      padding: 0.75rem;
-      background: var(--bg-secondary);
-      border-radius: 8px;
-      border: 1px solid var(--border);
-    }
-
-    .product-actions {
-      display: flex;
-      gap: 0.75rem;
-    }
-
-    .btn-action {
-      flex: 1;
-      padding: 0.875rem 1rem;
-      border: none;
-      border-radius: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      position: relative;
-      overflow: hidden;
-      text-decoration: none;
-      text-align: center;
-      font-size: 0.875rem;
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-      color: white;
-      box-shadow: var(--shadow-md);
-    }
-
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-lg), var(--shadow-glow);
-    }
-
-    .btn-secondary {
-      background: var(--bg-secondary);
-      border: 1px solid var(--border);
-      color: var(--text-primary);
-    }
-
-    .btn-secondary:hover {
-      background: var(--bg-tertiary);
-      border-color: var(--border-hover);
-      transform: translateY(-2px);
-    }
-
-    /* Empty State */
-    .empty-state {
-      text-align: center;
-      padding: 4rem 2rem;
-      background: var(--bg-glass);
-      border: 1px solid var(--border);
-      border-radius: 24px;
-      margin-top: 2rem;
-    }
-
-    .empty-icon {
-      font-size: 4rem;
-      margin-bottom: 1rem;
-      opacity: 0.5;
-    }
-
-    .empty-title {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: var(--text-primary);
-      margin-bottom: 0.5rem;
-    }
-
-    .empty-text {
-      color: var(--text-secondary);
-      font-size: 1rem;
-    }
-
-    /* Responsive Design */
-    @media (max-width: 768px) {
-      .nav-links {
-        display: none;
-      }
-
-      .controls-grid {
-        grid-template-columns: 1fr;
-        gap: 1rem;
-      }
-
-      .products-grid {
-        grid-template-columns: 1fr;
-        gap: 1rem;
-      }
-
-      .hero h1 {
-        font-size: 2rem;
-      }
-
-      .hero-stats {
-        flex-direction: column;
-        gap: 1.5rem;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .container {
-        padding: 1rem;
-      }
-
-      .controls {
-        padding: 1.5rem;
-      }
-
-      .product-content {
-        padding: 1.5rem;
-      }
-    }
-
-    /* Animations */
-    @keyframes slideUp {
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    @keyframes slideUpFade {
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    /* Utility Classes */
-    .fade-in {
-      animation: slideUp 0.6s ease forwards;
-    }
-
-    .loading {
-      pointer-events: none;
-      opacity: 0.6;
-    }
-
-    /* Scrollbar */
-    ::-webkit-scrollbar {
-      width: 8px;
-    }
-
-    ::-webkit-scrollbar-track {
-      background: var(--bg-secondary);
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: var(--primary);
-      border-radius: 4px;
-    }
-
-    ::-webkit-scrollbar-thumb:hover {
-      background: var(--primary-dark);
-    }
-  </style>
+  <meta charset="utf-8">
+  <title>CryptoMarket Demo</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 </head>
 <body>
-  <!-- Background Particles -->
-  <div class="bg-particles" id="particles"></div>
+  <h1>CryptoMarket Demo</h1>
+  <button id="connectWalletBtn">Connect MetaMask Wallet</button>
+  <div>
+    Connected address: <span id="walletAddress">—</span>
+  </div>
+  <hr>
 
-  <!-- Header -->
-  <header class="header" id="header">
-    <div class="header-content">
-      <a href="#" class="logo">
-        <div class="logo-icon">🚀</div>
-        CryptoMarket
-      </a>
-      <nav>
-        <ul class="nav-links">
-          <li><a href="#explore">Explore</a></li>
-          <li><a href="#collections">Collections</a></li>
-          <li><a href="#stats">Stats</a></li>
-          <li><a href="#create">Create</a></li>
-        </ul>
-      </nav>
-      <div class="header-actions">
-        <button class="btn-connect">Connect Wallet</button>
-      </div>
-    </div>
-  </header>
-
-  <!-- Main Container -->
-  <div class="container">
-    <!-- Hero Section -->
-    <section class="hero">
-      <h1>Discover Premium Digital Assets</h1>
-      <p>Explore, buy, and sell extraordinary NFTs on the world's most advanced marketplace</p>
-      
-      <div class="hero-stats">
-        <div class="stat">
-          <span class="stat-number" id="totalItems">0</span>
-          <span class="stat-label">Items</span>
-        </div>
-        <div class="stat">
-          <span class="stat-number" id="totalValue">0</span>
-          <span class="stat-label">ETH Volume</span>
-        </div>
-        <div class="stat">
-          <span class="stat-number" id="activeListings">0</span>
-          <span class="stat-label">Active</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- Controls -->
-    <section class="controls">
-      <div class="controls-grid">
-        <div class="search-container">
-          <div class="search-icon">🔍</div>
-          <input 
-            id="searchInput" 
-            type="text" 
-            class="search-input" 
-            placeholder="Search by name, description, or owner address..."
-          />
-        </div>
-        
-        <div class="select-wrapper">
-          <select id="forSaleFilter" class="custom-select">
-            <option value="all">All Items</option>
-            <option value="true">For Sale Only</option>
-            <option value="false">Not Listed</option>
-          </select>
-          <div class="select-arrow">▼</div>
-        </div>
-        
-        <button id="reloadBtn" class="btn">
-          ↻ Refresh
-        </button>
-        
-        <input 
-          id="apiUrl" 
-          type="text" 
-          class="search-input" 
-          value="http://localhost:5000/api/products" 
-          style="min-width: 200px; font-size: 0.8rem;"
-        />
-      </div>
-    </section>
-
-    <!-- Status Bar -->
-    <div class="status-bar">
-      <div class="status-text" id="statusText">
-        Ready to explore
-      </div>
-      <div class="items-count">
-        Items: <span id="itemCount">0</span>
-      </div>
-    </div>
-
-    <!-- Products Grid -->
-    <div class="products-grid" id="productsGrid">
-      <!-- Products will be loaded here -->
-    </div>
-
-    <!-- Empty State -->
-    <div class="empty-state" id="emptyState" style="display: none;">
-      <div class="empty-icon">🔍</div>
-      <h3 class="empty-title">No items found</h3>
-      <p class="empty-text">Try adjusting your search criteria or check back later</p>
-    </div>
+  <div>
+    <input id="apiUrl" type="text" style="width:300px" value="http://localhost:5000/api/products">
+    <button id="reloadBtn">Reload Products</button>
+    <button id="loadOrdersBtn">My Orders</button>
+    <button id="loadDisputesBtn" style="display:none;">Admin: Load Disputed Orders</button>
   </div>
 
+  <div id="status"></div>
+  <div id="productsGrid"></div>
+
+  <h3>My Orders</h3>
+  <div id="ordersGrid"></div>
+
+  <h3 id="adminPanelTitle" style="display:none;">Admin Panel — Disputed Orders</h3>
+  <div id="disputesGrid"></div>
+
+  <h3>Rewards</h3>
+  <input id="burnAmount" type="text" placeholder="Enter tokens to burn">
+  <button id="burnBtn">🔥 Burn Tokens</button>
+  <div id="burnStatus"></div>
+
+  <div id="orderStatus"></div>
+
   <script>
-    // Utility functions
+    const rewardTokenAddress = "0xa58801c99d95504fd9048431c9a4a0845c5e3df3"; // <-- replace with actual reward token
+
+
+  
+
+
+
+
+
+
+    let provider, signer, userAddress = "";
+
+    const escrowAddress = "0x134D06b6Aef09a40A4cf9F6F937097296c290E30";
+    const adminAddress = "0xeddFA97C56d6b32BC1E90D429e116D822a039B46".toLowerCase();
+
+    // only include relevant ABI entries for brevity
+    const escrowAbi = [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "productRegistryAddress",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "orderId",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "buyer",
+          "type": "address"
+        }
+      ],
+      "name": "DeliveryConfirmed",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "orderId",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "by",
+          "type": "address"
+        }
+      ],
+      "name": "DisputeOpened",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "orderId",
+          "type": "uint256"
+        }
+      ],
+      "name": "OrderCompleted",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "orderId",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "productId",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "buyer",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "seller",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "name": "OrderPlaced",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "orderId",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "buyer",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "name": "Refunded",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "orderId",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "seller",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "name": "Released",
+      "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "orderId",
+          "type": "uint256"
+        }
+      ],
+      "name": "confirmDelivery",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "orderId",
+          "type": "uint256"
+        }
+      ],
+      "name": "getOrder",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "id",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "productId",
+              "type": "uint256"
+            },
+            {
+              "internalType": "address",
+              "name": "buyer",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "seller",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "value",
+              "type": "uint256"
+            },
+            {
+              "internalType": "enum OrderEscrow.OrderStatus",
+              "name": "status",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint256",
+              "name": "timestamp",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct OrderEscrow.Order",
+          "name": "",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "buyer",
+          "type": "address"
+        }
+      ],
+      "name": "getOrdersByBuyer",
+      "outputs": [
+        {
+          "internalType": "uint256[]",
+          "name": "ids",
+          "type": "uint256[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "buyer",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "productId",
+          "type": "uint256"
+        }
+      ],
+      "name": "hasPurchased",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "orderId",
+          "type": "uint256"
+        }
+      ],
+      "name": "openDispute",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "orderCount",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "orders",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "id",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "productId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "buyer",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "seller",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        },
+        {
+          "internalType": "enum OrderEscrow.OrderStatus",
+          "name": "status",
+          "type": "uint8"
+        },
+        {
+          "internalType": "uint256",
+          "name": "timestamp",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "productId",
+          "type": "uint256"
+        }
+      ],
+      "name": "placeOrder",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "orderId",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "productRegistry",
+      "outputs": [
+        {
+          "internalType": "contract IProductRegistry",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "orderId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bool",
+          "name": "refundBuyer",
+          "type": "bool"
+        }
+      ],
+      "name": "resolveDispute",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ]
+    const rewardTokenAbi= [
+    {
+      "inputs": [],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "spender",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "allowance",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "needed",
+          "type": "uint256"
+        }
+      ],
+      "name": "ERC20InsufficientAllowance",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "sender",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "balance",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "needed",
+          "type": "uint256"
+        }
+      ],
+      "name": "ERC20InsufficientBalance",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "approver",
+          "type": "address"
+        }
+      ],
+      "name": "ERC20InvalidApprover",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "receiver",
+          "type": "address"
+        }
+      ],
+      "name": "ERC20InvalidReceiver",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "sender",
+          "type": "address"
+        }
+      ],
+      "name": "ERC20InvalidSender",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "spender",
+          "type": "address"
+        }
+      ],
+      "name": "ERC20InvalidSpender",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnableInvalidOwner",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "OwnableUnauthorizedAccount",
+      "type": "error"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "spender",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "name": "Approval",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "previousOwner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnershipTransferred",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "from",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "name": "Transfer",
+      "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "spender",
+          "type": "address"
+        }
+      ],
+      "name": "allowance",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "spender",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "name": "approve",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "balanceOf",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "burn",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "decimals",
+      "outputs": [
+        {
+          "internalType": "uint8",
+          "name": "",
+          "type": "uint8"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "mint",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "name",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "renounceOwnership",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "symbol",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "totalSupply",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "name": "transfer",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "from",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "name": "transferFrom",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "transferOwnership",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ];
     const el = id => document.getElementById(id);
 
-    // Create animated background particles
-    function createParticles() {
-      const particlesContainer = el('particles');
-      for (let i = 0; i < 50; i++) {
-        const particle = document.createElement('div');
-        particle.className = 'particle';
-        particle.style.left = Math.random() * 100 + '%';
-        particle.style.animationDelay = Math.random() * 20 + 's';
-        particle.style.animationDuration = (Math.random() * 10 + 15) + 's';
-        particlesContainer.appendChild(particle);
-      }
-    }
-
-    // Format Wei to ETH
-    function formatWeiToEth(weiStr) {
+    // Connect Wallet
+    el('connectWalletBtn').onclick = async function () {
+      if (!window.ethereum) return alert("MetaMask is not installed!");
       try {
-        if (typeof weiStr === 'string' && weiStr.includes('.')) return weiStr;
-        const wei = BigInt(weiStr.toString());
-        const ETH_DECIMALS = 18n;
-        const whole = wei / (10n ** ETH_DECIMALS);
-        let frac = (wei % (10n ** ETH_DECIMALS)).toString().padStart(Number(ETH_DECIMALS), '0');
-        frac = frac.replace(/0+$/, '');
-        if (frac.length === 0) frac = '0';
-        return whole.toString() + '.' + frac;
-      } catch (err) {
-        return weiStr;
-      }
-    }
+        provider = new ethers.providers.Web3Provider(window.ethereum);
+        await provider.send("eth_requestAccounts", []);
+        signer = provider.getSigner();
+        userAddress = (await signer.getAddress()).toLowerCase();
+        el('walletAddress').textContent = userAddress;
 
-    // Build IPFS URL
-    function ipfsUrl(hash) {
-      if (!hash) return '';
-      if (hash.startsWith('ipfs://')) hash = hash.replace(/^ipfs:\/\//, '');
-      return 'https://ipfs.io/ipfs/' + hash;
-    }
-
-    // Format address for display
-    function formatAddress(address) {
-      if (!address) return '—';
-      return `${address.slice(0, 6)}...${address.slice(-4)}`;
-    }
-
-    // Update hero stats
-    function updateStats(products) {
-      const totalItems = products.length;
-      const totalValue = products.reduce((sum, p) => {
-        const price = parseFloat(p.priceEth || '0');
-        return sum + price;
-      }, 0);
-      const activeListings = products.filter(p => p.forSale).length;
-
-      el('totalItems').textContent = totalItems.toLocaleString();
-      el('totalValue').textContent = totalValue.toFixed(4);
-      el('activeListings').textContent = activeListings.toLocaleString();
-    }
-
-    // Main fetch and render function
-    async function fetchAndRender() {
-      const url = el('apiUrl').value.trim();
-      const statusEl = el('statusText');
-      const gridEl = el('productsGrid');
-      const emptyEl = el('emptyState');
-      
-      // Show loading state
-      statusEl.innerHTML = '<div class="loading-spinner"></div> Loading amazing products...';
-      gridEl.innerHTML = '';
-      emptyEl.style.display = 'none';
-      
-      try {
-        const res = await fetch(url, { method: 'GET' });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-
-        if (!Array.isArray(data) || data.length === 0) {
-          emptyEl.style.display = 'block';
-          el('itemCount').textContent = '0';
-          statusEl.textContent = 'No products available';
-          updateStats([]);
-          return;
+        // show admin panel if admin
+        if (userAddress === adminAddress) {
+          el('loadDisputesBtn').style.display = 'inline-block';
+          el('adminPanelTitle').style.display = 'block';
         }
+      } catch (err) {
+        console.error("Wallet connect error", err);
+        alert("Failed to connect wallet: " + err.message);
+      }
+    };
+        // 🔥 Burn Tokens
+    el('burnBtn').onclick = async function () {
+      if (!userAddress || !signer) return alert("Connect your wallet first");
+      const amount = el('burnAmount').value.trim();
+      if (!amount) return alert("Enter amount to burn");
 
-        // Apply filters
-        const query = el('searchInput').value.trim().toLowerCase();
-        const forSaleFilter = el('forSaleFilter').value;
-        
-        let filteredProducts = data.filter(product => {
-          // Filter by sale status
-          if (forSaleFilter !== 'all') {
-            const wantForSale = forSaleFilter === 'true';
-            if (Boolean(product.forSale) !== wantForSale) return false;
-          }
-          
-          // Filter by search query
-          if (!query) return true;
-          const searchText = (
-            (product.name || '') + ' ' +
-            (product.description || '') + ' ' +
-            (product.owner || '') + ' ' +
-            (product.productId || '')
-          ).toLowerCase();
-          return searchText.includes(query);
+      try {
+        const contract = new ethers.Contract(rewardTokenAddress, rewardTokenAbi, signer);
+        const decimals = await contract.decimals();
+        const parsedAmount = ethers.utils.parseUnits(amount, decimals);
+
+        const tx = await contract.burn(parsedAmount);
+        el('burnStatus').textContent = '⏳ Burning tokens TX ' + tx.hash;
+        await tx.wait();
+
+        // Notify backend
+        await fetch("http://localhost:5000/api/rewards/burn", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ txHash: tx.hash, amount })
         });
 
-        el('itemCount').textContent = filteredProducts.length.toLocaleString();
-        updateStats(data);
+        el('burnStatus').innerHTML = `✅ Tokens burned. TX: ${tx.hash}`;
+      } catch (err) {
+        console.error("Burn error", err);
+        el('burnStatus').textContent = '❌ Burn failed: ' + err.message;
+      }
+    };
+    // Load products
+    async function loadProducts() {
+      el('status').textContent = "Loading products...";
+      el('productsGrid').innerHTML = '';
+      const url = el('apiUrl').value.trim();
+      let products = [];
+      try {
+        const resp = await fetch(url);
+        if (!resp.ok) throw new Error('Failed to fetch: ' + resp.status);
+        products = await resp.json();
+      } catch (err) {
+        el('status').textContent = 'Error loading products: ' + err.message;
+        return;
+      }
 
-        if (filteredProducts.length === 0) {
-          emptyEl.style.display = 'block';
-          statusEl.textContent = 'No items match your filters';
+      el('status').textContent = products.length + " products loaded";
+      if (!Array.isArray(products) || products.length === 0) {
+        el('productsGrid').innerHTML = "<div>No products found.</div>";
+        return;
+      }
+
+      el('productsGrid').innerHTML = products.map(prod => `
+        <div style="border:1px solid #ccc; margin:8px; padding:8px;">
+          <strong>${prod.name || "Unnamed"}</strong> <br>
+          <span>${prod.description || ""}</span><br>
+          Price: ${prod.priceEth || ethers.utils.formatEther(prod.priceWei)} ETH <br>
+          ${prod.forSale ? `
+          <button onclick="placeOrder('${prod.productId}', this)" ${!userAddress ? 'disabled' : ''}>
+            🛒 Buy Now
+          </button>` : "<b>Sold Out</b>"}
+        </div>
+      `).join("");
+    }
+
+    // Load Orders
+    async function loadOrders() {
+      if (!userAddress) return alert("Connect your wallet first");
+      el('ordersGrid').innerHTML = 'Loading your orders...';
+
+      try {
+        const resp = await fetch(`http://localhost:5000/api/orders/buyer/${userAddress}`);
+        if (!resp.ok) throw new Error('Failed to fetch orders: ' + resp.status);
+        const orders = await resp.json();
+
+        if (!orders || orders.length === 0) {
+          el('ordersGrid').innerHTML = "<div>No orders yet.</div>";
           return;
         }
 
-        // Render products
-        gridEl.innerHTML = filteredProducts.map((product, index) => {
-          const priceEth = product.priceEth ?? (product.priceWei ? formatWeiToEth(product.priceWei) : '0');
-          const imageUrl = ipfsUrl(product.imageHash);
-          const fallbackImage = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="240" viewBox="0 0 400 240"><defs><linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:%236366f1;stop-opacity:0.1"/><stop offset="100%" style="stop-color:%23ec4899;stop-opacity:0.1"/></linearGradient></defs><rect width="400" height="240" fill="url(%23bg)"/><text x="50%" y="50%" fill="%23a1a1aa" dominant-baseline="middle" text-anchor="middle" font-family="Inter, sans-serif" font-size="16" font-weight="600">🖼️ No Image</text></svg>';
-
+        el('ordersGrid').innerHTML = orders.map(order => {
+          let priceEth = order.priceWei
+            ? ethers.utils.formatEther(order.priceWei)
+            : order.value;
           return `
-            <div class="product-card" style="animation-delay: ${index * 0.1}s">
-              <div class="product-image">
-                <img 
-                  class="product-img" 
-                  src="${imageUrl || fallbackImage}" 
-                  alt="${product.name || 'Product'}"
-                  onerror="this.src='${fallbackImage}'"
-                />
-                <div class="product-overlay"></div>
-                <div class="product-status ${product.forSale ? 'status-available' : 'status-sold'}">
-                  ${product.forSale ? '✨ Available' : '❌ Sold Out'}
-                </div>
-              </div>
-              
-              <div class="product-content">
-                <div class="product-header">
-                  <div>
-                    <h3 class="product-title">${product.name || 'Unnamed Item'}</h3>
-                    <p class="product-description">${product.description || 'No description available'}</p>
-                  </div>
-                  <div class="product-price">${priceEth} ETH</div>
-                </div>
-                
-                <div class="product-meta">
-                  <div class="meta-item">
-                    <div class="meta-label">Chain ID</div>
-                    <div class="meta-value">#${product.onChainId || '—'}</div>
-                  </div>
-                  <div class="meta-item">
-                    <div class="meta-label">Created</div>
-                    <div class="meta-value">${product.createdAt ? new Date(product.createdAt).toLocaleDateString() : '—'}</div>
-                  </div>
-                </div>
-                
-                <div class="product-owner">
-                  <strong>Owner:</strong> ${formatAddress(product.owner)}
-                </div>
-                
-                <div class="product-actions">
-                  <button class="btn-action btn-primary" onclick="viewProduct('${product.productId}')" ${!product.forSale ? 'disabled' : ''}>
-                    ${product.forSale ? '🛒 Buy Now' : '❌ Sold Out'}
-                  </button>
-                  <button class="btn-action btn-secondary" onclick="showDetails('${product.productId}')">
-                    📊 Details
-                  </button>
-                  <a href="${ipfsUrl(product.imageHash)}" target="_blank" class="btn-action btn-secondary" rel="noopener">
-                    🖼️ Image
-                  </a>
-                </div>
-              </div>
+            <div style="border:1px solid #aaa; margin:8px; padding:8px;">
+              <b>Order #${order.id}</b><br>
+              Product: ${order.productId}<br>
+              Seller: ${order.seller}<br>
+              Price: ${priceEth} ETH <br>
+              Status: ${order.statusName || order.status}<br>
+              <button onclick="confirmDelivery('${order.id}')">📦 Confirm Delivery</button>
+              <button onclick="openDispute('${order.id}')">⚠️ Open Dispute</button>
             </div>
           `;
-        }).join('');
+        }).join("");
 
-        statusEl.textContent = `✨ Loaded ${filteredProducts.length} premium item${filteredProducts.length !== 1 ? 's' : ''}`;
-        
-      } catch (error) {
-        console.error('Fetch error:', error);
-        statusEl.textContent = `❌ Error: ${error.message}`;
-        emptyEl.style.display = 'block';
-        emptyEl.querySelector('.empty-title').textContent = 'Connection Failed';
-        emptyEl.querySelector('.empty-text').textContent = 'Unable to load products. Please check your connection and API endpoint.';
-        el('itemCount').textContent = '0';
-        updateStats([]);
+      } catch (err) {
+        el('ordersGrid').innerHTML = "❌ Error loading orders: " + err.message;
       }
     }
 
-    // Product interaction functions
-    function viewProduct(productId) {
-      // Add buying animation
-      const button = event.target;
-      const originalText = button.innerHTML;
-      button.innerHTML = '⏳ Processing...';
-      button.disabled = true;
-      
-      setTimeout(() => {
-        button.innerHTML = '✅ Added to Cart!';
-        setTimeout(() => {
-          button.innerHTML = originalText;
-          button.disabled = false;
-        }, 2000);
-      }, 1000);
-      
-      console.log('Viewing product:', productId);
-    }
+    // Load Disputed Orders (admin)
+    async function loadDisputedOrders() {
+      el('disputesGrid').innerHTML = 'Loading disputed orders...';
+      try {
+        const resp = await fetch(`http://localhost:5000/api/orders/disputed`);
+        if (!resp.ok) throw new Error('Failed to fetch disputes: ' + resp.status);
+        const disputes = await resp.json();
 
-    function showDetails(productId) {
-      // Find the product data
-      fetch(el('apiUrl').value.trim())
-        .then(res => res.json())
-        .then(data => {
-          const product = data.find(p => p.productId === productId);
-          if (product) {
-            const details = `
-🏷️ Product Details:
-
-📝 Name: ${product.name || 'Unnamed'}
-📋 Description: ${product.description || 'No description'}
-💰 Price: ${product.priceEth || formatWeiToEth(product.priceWei || '0')} ETH
-🔗 Chain ID: ${product.onChainId || '—'}
-👤 Owner: ${product.owner || '—'}
-🆔 Product ID: ${product.productId || '—'}
-📅 Created: ${product.createdAt ? new Date(product.createdAt).toLocaleString() : '—'}
-📈 Status: ${product.forSale ? 'Available for Sale' : 'Not for Sale'}
-
-🔗 IPFS Links:
-🖼️ Image: ${product.imageHash || 'None'}
-📄 Metadata: ${product.provenanceHash || 'None'}
-            `;
-            alert(details);
-          }
-        })
-        .catch(console.error);
-    }
-
-    // Header scroll effect
-    function updateHeader() {
-      const header = el('header');
-      if (window.scrollY > 50) {
-        header.classList.add('scrolled');
-      } else {
-        header.classList.remove('scrolled');
-      }
-    }
-
-    // Debounce function for search
-    function debounce(func, wait) {
-      let timeout;
-      return function executedFunction(...args) {
-        const later = () => {
-          clearTimeout(timeout);
-          func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-      };
-    }
-
-    // Event listeners
-    function initializeEventListeners() {
-      // Search with debounce
-      el('searchInput').addEventListener('input', debounce(fetchAndRender, 300));
-      
-      // Filter change
-      el('forSaleFilter').addEventListener('change', fetchAndRender);
-      
-      // Reload button
-      el('reloadBtn').addEventListener('click', () => {
-        // Add loading animation to button
-        const btn = el('reloadBtn');
-        btn.innerHTML = '⏳ Loading...';
-        btn.disabled = true;
-        
-        fetchAndRender().then(() => {
-          btn.innerHTML = '↻ Refresh';
-          btn.disabled = false;
-        });
-      });
-      
-      // Scroll effects
-      window.addEventListener('scroll', updateHeader);
-      
-      // API URL change
-      el('apiUrl').addEventListener('change', fetchAndRender);
-      
-      // Connect wallet button
-      document.querySelector('.btn-connect').addEventListener('click', () => {
-        alert('🚀 Wallet connection coming soon!');
-      });
-    }
-
-    // Animate elements on scroll
-    function animateOnScroll() {
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('fade-in');
-          }
-        });
-      }, {
-        threshold: 0.1,
-        rootMargin: '0px 0px -50px 0px'
-      });
-
-      // Observe product cards
-      document.querySelectorAll('.product-card').forEach(card => {
-        observer.observe(card);
-      });
-    }
-
-    // Initialize everything
-    function init() {
-      createParticles();
-      initializeEventListeners();
-      
-      // Initial load with a dramatic delay
-      setTimeout(() => {
-        fetchAndRender().then(() => {
-          animateOnScroll();
-        });
-      }, 800);
-    }
-
-    // Start the app when DOM is ready
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', init);
-    } else {
-      init();
-    }
-
-    // Add some interactive hover effects
-    document.addEventListener('mousemove', (e) => {
-      const cards = document.querySelectorAll('.product-card');
-      cards.forEach(card => {
-        const rect = card.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        
-        if (x >= 0 && x <= rect.width && y >= 0 && y <= rect.height) {
-          const centerX = rect.width / 2;
-          const centerY = rect.height / 2;
-          const rotateX = (y - centerY) / 20;
-          const rotateY = (centerX - x) / 20;
-          
-          card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateZ(10px)`;
-        } else {
-          card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(0px)';
+        if (!disputes || disputes.length === 0) {
+          el('disputesGrid').innerHTML = "<div>No disputed orders.</div>";
+          return;
         }
-      });
-    });
 
-    // Easter egg - Konami code
-    let konamiCode = [];
-    const konamiSequence = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'KeyB', 'KeyA'];
-    
-    document.addEventListener('keydown', (e) => {
-      konamiCode.push(e.code);
-      if (konamiCode.length > konamiSequence.length) {
-        konamiCode.shift();
+        el('disputesGrid').innerHTML = disputes.map(order => {
+          let priceEth = order.priceWei
+            ? ethers.utils.formatEther(order.priceWei)
+            : order.value;
+          return `
+            <div style="border:1px solid red; margin:8px; padding:8px;">
+              <b>Disputed Order #${order.id}</b><br>
+              Product: ${order.productId}<br>
+              Buyer: ${order.buyer}<br>
+              Seller: ${order.seller}<br>
+              Price: ${priceEth} ETH <br>
+              Status: ${order.statusName || order.status}<br>
+              <button onclick="resolveDispute('${order.id}', false)">✅ Release to Seller</button>
+              <button onclick="resolveDispute('${order.id}', true)">💸 Refund Buyer</button>
+            </div>
+          `;
+        }).join("");
+
+      } catch (err) {
+        el('disputesGrid').innerHTML = "❌ Error loading disputes: " + err.message;
       }
-      
-      if (JSON.stringify(konamiCode) === JSON.stringify(konamiSequence)) {
-        document.body.style.filter = 'hue-rotate(180deg)';
-        setTimeout(() => {
-          document.body.style.filter = 'none';
-        }, 3000);
-        alert('🎮 Konami Code activated! You found the secret!');
-        konamiCode = [];
+    }
+
+    // Place Order
+    window.placeOrder = async function(productId, btn) {
+      if (!userAddress || !signer) return alert("Please connect MetaMask first.");
+      el('orderStatus').innerHTML = '';
+      btn.disabled = true;
+      btn.textContent = "⏳ Waiting for MetaMask...";
+
+      let product;
+      const url = el('apiUrl').value.trim();
+      try {
+        const resp = await fetch(url);
+        const products = await resp.json();
+        product = products.find(p => p.productId === productId);
+        if (!product) throw new Error("Product not found.");
+      } catch (err) {
+        el('orderStatus').textContent = '❌ Product lookup failed: ' + err.message;
+        btn.disabled = false;
+        btn.textContent = "🛒 Buy Now";
+        return;
       }
-    });
+
+      try {
+        const contract = new ethers.Contract(escrowAddress, escrowAbi, signer);
+        const tx = await contract.placeOrder(product.onChainId, {
+          value: ethers.utils.parseEther(product.priceEth.toString())
+        });
+        el('orderStatus').textContent = '⏳ Mining TX ' + tx.hash;
+        await tx.wait();
+
+        // Backend notify
+        await fetch('http://localhost:5000/api/orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ productId: product.productId, txHash: tx.hash, buyer: userAddress })
+        });
+
+        el('orderStatus').innerHTML = `✅ Order placed. TX: ${tx.hash}`;
+        loadOrders();
+      } catch (err) {
+        el('orderStatus').textContent = '❌ Order failed: ' + err.message;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "🛒 Buy Now";
+      }
+    };
+
+    // Confirm Delivery
+    window.confirmDelivery = async function(orderId) {
+      try {
+        const contract = new ethers.Contract(escrowAddress, escrowAbi, signer);
+        const tx = await contract.confirmDelivery(orderId);
+        el('orderStatus').textContent = '⏳ Confirming delivery TX ' + tx.hash;
+        await tx.wait();
+        await fetch(`http://localhost:5000/api/orders/${orderId}/deliver`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ txHash: tx.hash })
+        });
+        el('orderStatus').innerHTML = `✅ Delivery confirmed. TX: ${tx.hash}`;
+        loadOrders();
+      } catch (err) {
+        el('orderStatus').textContent = '❌ Delivery confirmation failed: ' + err.message;
+      }
+    };
+
+    // Open Dispute
+    window.openDispute = async function(orderId) {
+      try {
+        const contract = new ethers.Contract(escrowAddress, escrowAbi, signer);
+        const tx = await contract.openDispute(orderId);
+        el('orderStatus').textContent = '⏳ Opening dispute TX ' + tx.hash;
+        await tx.wait();
+        await fetch(`http://localhost:5000/api/orders/${orderId}/dispute`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ txHash: tx.hash })
+        });
+        el('orderStatus').innerHTML = `⚠️ Dispute opened. TX: ${tx.hash}`;
+        loadOrders();
+      } catch (err) {
+        el('orderStatus').textContent = '❌ Dispute failed: ' + err.message;
+      }
+    };
+
+    // Resolve Dispute (admin only)
+    window.resolveDispute = async function(orderId, refundBuyer) {
+      if (userAddress !== adminAddress) return alert("Only admin can resolve disputes.");
+      try {
+        const contract = new ethers.Contract(escrowAddress, escrowAbi, signer);
+        const tx = await contract.resolveDispute(orderId, refundBuyer);
+        el('orderStatus').textContent = '⏳ Resolving dispute TX ' + tx.hash;
+        await tx.wait();
+        await fetch(`http://localhost:5000/api/orders/${orderId}/resolve`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ txHash: tx.hash, refundBuyer })
+        });
+        el('orderStatus').innerHTML = `✅ Dispute resolved. TX: ${tx.hash}`;
+        loadDisputedOrders();
+      } catch (err) {
+        el('orderStatus').textContent = '❌ Resolve dispute failed: ' + err.message;
+      }
+    };
+
+    el('reloadBtn').onclick = loadProducts;
+    el('loadOrdersBtn').onclick = loadOrders;
+    el('loadDisputesBtn').onclick = loadDisputedOrders;
+
+    loadProducts();
   </script>
 </body>
 </html>

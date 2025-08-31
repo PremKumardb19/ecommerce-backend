@@ -13,7 +13,7 @@ router.post('/:id/dispute', orderController.openDispute);
 
 // Resolve dispute (refund or release funds)
 router.post('/:id/resolve', orderController.resolveDispute);
-
+router.get('/disputed', orderController.getDisputedOrders);
 // Get order details by ID
 router.get('/:id', orderController.getOrder);
 
